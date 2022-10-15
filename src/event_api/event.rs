@@ -347,6 +347,32 @@ mod test {
     }
 
     #[test]
+    fn deserializes_bot_message_event() {
+        let json = r##"{
+    "token": "tczRggnKN5seG9m70IPDIwkq",
+    "team_id": "T1234567890",
+    "api_app_id": "A0454AVL9L0",
+    "event": {
+        "type": "message",
+        "subtype": "bot_message",
+        "text": "this is a bot event",
+        "ts": "1665341482.399349",
+        "username": "Robot",
+        "bot_id": "B04488SU0P8",
+        "app_id": "A044TG2QKDF",
+        "channel": "C044T73TB17",
+        "event_ts": "1665341482.399349",
+        "channel_type": "channel"
+    },
+    "type": "event_callback",
+    "event_id": "Ev0464MAU18R",
+    "event_time": 1665341482
+}"##;
+        let event = serde_json::from_str::<EventCallback>(json);
+        assert_eq!(event.is_ok(), true);
+    }
+
+    #[test]
     fn deserialize_unknown_event() {
         let json = r##"{
   "token": "bHKJ2n9AW6Ju3MjciOHfbA1b",
