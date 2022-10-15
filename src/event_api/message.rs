@@ -12,10 +12,10 @@ pub enum MessageSubtype {
     },
     MeMessage,
     MessageChanged {
-        edited: MessageChangedEdited,
-        text: String,
+        hidden: bool,
+        channel: String,
         ts: String,
-        user: String,
+        message: ChangedMessage,
     },
     Message {
         channel: String,
@@ -31,6 +31,17 @@ pub enum MessageSubtype {
 
 #[derive(Deserialize, Serialize, Debug, PartialEq)]
 #[serde(rename_all = "snake_case")]
+pub struct ChangedMessage {
+    #[serde(rename = "type")]
+    _type: String,
+    user: String,
+    text: String,
+    ts: String,
+    edited: MessageChangedEdited,
+}
+
+#[derive(Deserialize, Serialize, Debug, PartialEq)]
+#[serde(rename_all = "snake_case")]
 pub struct MessageChangedEdited {
     user: String,
     ts: String,
@@ -38,7 +49,9 @@ pub struct MessageChangedEdited {
 
 #[cfg(test)]
 mod test {
-    use crate::event_api::event::Event;
+    use crate::event_api::event::*;
+    use crate::event_api::message::*;
+
     #[test]
     fn deserializes_message_subtype_bot_message() {
         let json = r##"
@@ -65,5 +78,74 @@ mod test {
 "##;
         let event = serde_json::from_str::<Event>(json);
         assert_eq!(event.is_ok(), true);
+    }
+
+    #[test]
+    fn deserializes_message_subtype_me_message() {
+        let json = r##"
+{
+    "token": "tczRggnKN5seG9m70IPDIwkq",
+    "team_id": "T1234567890",
+    "api_app_id": "A0454AVL9L0",
+    "event": {
+	"type": "message",
+	"subtype": "me_message",
+	"channel": "C2147483705",
+	"user": "U2147483697",
+	"text": "is doing that thing",
+	"ts": "1355517523.000005"
+    },
+    "type": "event_callback",
+    "event_id": "Ev0464MAU18R",
+    "event_time": 1665341482
+}
+"##;
+        let event = serde_json::from_str::<Event>(json);
+        assert_eq!(event.is_ok(), true);
+    }
+
+    #[test]
+    fn deserializes_message_subtype_message_changed() {
+        let json = r##"
+{
+    "token": "tczRggnKN5seG9m70IPDIwkq",
+    "team_id": "T1234567890",
+    "api_app_id": "A0454AVL9L0",
+    "event": {
+        "type": "message",
+        "subtype": "message_changed",
+        "hidden": true,
+        "channel": "C2147483705",
+        "ts": "1358878755.000001",
+        "message": {
+            "type": "message",
+            "user": "U2147483697",
+            "text": "Hello, world!",
+            "ts": "1355517523.000005",
+            "edited": {
+                "user": "U2147483697",
+                "ts": "1358878755.000001"
+            }
+        }
+    },
+    "type": "event_callback",
+    "event_id": "Ev0464MAU18R",
+    "event_time": 1665341482
+}
+"##;
+        let event = serde_json::from_str::<Event>(json).unwrap();
+        match event {
+            Event::EventCallback(event_callback) => { 
+                match event_callback.event {
+                    EventCallbackType::Message(message) => {
+                        match message {
+                            MessageSubtype::MessageChanged{..} => assert!(true),
+                            _ => assert!(false)
+                        }
+                    },
+                    _ => panic!("Event callback deserialize into incorrect variant"),
+                }
+            },
+        }
     }
 }
