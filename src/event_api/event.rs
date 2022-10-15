@@ -2,6 +2,7 @@
 
 use crate::channels::channel::Channel;
 use crate::event_api::app::AppRequest;
+use crate::event_api::message::*;
 use crate::team::teams::Team;
 use crate::views::view::View;
 use serde::{Deserialize, Serialize};
@@ -204,41 +205,6 @@ pub enum EventCallbackType {
     Message(MessageSubtype),
     #[serde(other)]
     Other,
-}
-
-#[derive(Deserialize, Serialize, Debug, PartialEq)]
-#[serde(rename_all = "snake_case", tag = "subtype")]
-pub enum MessageSubtype {
-    BotMessage {
-        ts: String,
-        text: String,
-        bot_id: String,
-        username: String,
-    },
-    MeMessage,
-    MessageChanged {
-        user: String,
-        text: String,
-        ts: String,
-        edited: MessageChangedEdited,
-    },
-    Message {
-        channel_type: String,
-        channel: String,
-        event_ts: String,
-        hidden: Option<bool>,
-        text: String,
-        thread_ts: Option<String>,
-        ts: String,
-        user: Option<String>,
-    },
-}
-
-#[derive(Deserialize, Serialize, Debug, PartialEq)]
-#[serde(rename_all = "snake_case")]
-pub struct MessageChangedEdited {
-    user: String,
-    ts: String,
 }
 
 #[cfg(test)]
