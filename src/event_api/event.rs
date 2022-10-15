@@ -287,18 +287,34 @@ pub enum EventCallbackType {
         channel_type: String,
         team: String,
     },
-    /// A message was sent to a channel
+    /// A message was sent to a channel. Note that this can include a variety of subtypes
     Message {
         channel_type: String,
         channel: String,
         event_ts: String,
+        hidden: Option<bool>,
+        subtype: Option<MessageSubtype>,
         text: String,
         thread_ts: Option<String>,
         ts: String,
-        user: String,
+        user: Option<String>,
     },
     #[serde(other)]
     Other,
+}
+
+#[derive(Deserialize, Serialize, Debug, PartialEq)]
+#[skip_serializing_none]
+#[serde(rename_all = "snake_case")]
+pub enum MessageSubtype {
+    BotMessage,
+    MeMessage,
+    MessageChanged {
+        _type: String,
+        user: String,
+        text: String,
+        ts: String,
+    }
 }
 
 #[cfg(test)]
@@ -347,7 +363,7 @@ mod test {
     }
 
     #[test]
-    fn deserializes_bot_message_event() {
+    fn deserializes_message_subtype_bot_message() {
         let json = r##"{
     "token": "tczRggnKN5seG9m70IPDIwkq",
     "team_id": "T1234567890",
